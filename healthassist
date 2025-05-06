@@ -1,0 +1,1892 @@
+<!DOCTYPE html>
+ <html lang="en">
+ <head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Health Assistant - Smart Personal Health & Nutrition</title>
+ <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+ <script>tailwind.config={theme:{extend:{colors:{primary:'#4F46E5',secondary:'#10B981'},borderRadius:{'none':'0px','sm':'4px',DEFAULT:'8px','md':'12px','lg':'16px','xl':'20px','2xl':'24px','3xl':'32px','full':'9999px','button':'8px'}}}}</script>
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+ <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
+ <style>
+ :where([class^="ri-"])::before { content: "\f3c2"; }
+ body {
+ font-family: 'Inter', sans-serif;
+ background-color: #f9fafb;
+ }
+ input[type="number"]::-webkit-inner-spin-button,
+ input[type="number"]::-webkit-outer-spin-button {
+ -webkit-appearance: none;
+ margin: 0;
+ }
+ input[type="number"] {
+ -moz-appearance: textfield;
+ }
+ .custom-radio input {
+ display: none;
+ }
+ .custom-radio .radio-mark {
+ display: inline-block;
+ width: 20px;
+ height: 20px;
+ border-radius: 50%;
+ border: 2px solid #d1d5db;
+ position: relative;
+ margin-right: 8px;
+ vertical-align: middle;
+ }
+ .custom-radio input:checked + .radio-mark {
+ border-color: #4F46E5;
+ }
+ .custom-radio input:checked + .radio-mark:after {
+ content: "";
+ position: absolute;
+ top: 4px;
+ left: 4px;
+ width: 8px;
+ height: 8px;
+ border-radius: 50%;
+ background: #4F46E5;
+ }
+ .custom-checkbox input {
+ display: none;
+ }
+ .custom-checkbox .checkbox-mark {
+ display: inline-block;
+ width: 20px;
+ height: 20px;
+ border-radius: 4px;
+ border: 2px solid #d1d5db;
+ position: relative;
+ margin-right: 8px;
+ vertical-align: middle;
+ }
+ .custom-checkbox input:checked + .checkbox-mark {
+ border-color: #4F46E5;
+ background-color: #4F46E5;
+ }
+ .custom-checkbox input:checked + .checkbox-mark:after {
+ content: "";
+ position: absolute;
+ top: 3px;
+ left: 6px;
+ width: 5px;
+ height: 10px;
+ border: solid white;
+ border-width: 0 2px 2px 0;
+ transform: rotate(45deg);
+ }
+ .custom-switch {
+ position: relative;
+ display: inline-block;
+ width: 48px;
+ height: 24px;
+ }
+ .custom-switch input {
+ opacity: 0;
+ width: 0;
+ height: 0;
+ }
+ .switch-slider {
+ position: absolute;
+ cursor: pointer;
+ top: 0;
+ left: 0;
+ right: 0;
+ bottom: 0;
+ background-color: #e5e7eb;
+ transition: .4s;
+ border-radius: 24px;
+ }
+ .switch-slider:before {
+ position: absolute;
+ content: "";
+ height: 18px;
+ width: 18px;
+ left: 3px;
+ bottom: 3px;
+ background-color: white;
+ transition: .4s;
+ border-radius: 50%;
+ }
+ .custom-switch input:checked + .switch-slider {
+ background-color: #4F46E5;
+ }
+ .custom-switch input:checked + .switch-slider:before {
+ transform: translateX(24px);
+ }
+ .custom-range {
+ -webkit-appearance: none;
+ width: 100%;
+ height: 6px;
+ border-radius: 3px;
+ background: #e5e7eb;
+ outline: none;
+ }
+ .custom-range::-webkit-slider-thumb {
+ -webkit-appearance: none;
+ appearance: none;
+ width: 18px;
+ height: 18px;
+ border-radius: 50%;
+ background: #4F46E5;
+ cursor: pointer;
+ }
+ .custom-range::-moz-range-thumb {
+ width: 18px;
+ height: 18px;
+ border-radius: 50%;
+ background: #4F46E5;
+ cursor: pointer;
+ border: none;
+ }
+ .tab-active {
+ color: #4F46E5;
+ border-bottom: 2px solid #4F46E5;
+ }
+ </style>
+ </head>
+ <body>
+ <!-- Header & Navigation -->
+ <header class="bg-white shadow-sm">
+ <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+ <h1 class="text-2xl font-['Pacifico'] text-primary">HealthAssist</h1>
+ <button id="loginBtn" class="bg-primary text-white py-2 px-4 rounded-button font-medium hover:bg-opacity-90 transition-all whitespace-nowrap">
+ Login
+ </button>
+ </div>
+ <!-- Login Modal -->
+ <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+ <div class="bg-white rounded-lg p-6 w-full max-w-md">
+ <div class="flex justify-between items-center mb-6">
+ <h3 class="text-xl font-semibold">Login</h3>
+ <button id="closeLoginModal" class="text-gray-500 hover:text-gray-700">
+ <i class="ri-close-line ri-lg"></i>
+ </button>
+ </div>
+ <form id="loginForm" class="space-y-4">
+ <div>
+ <label class="block text-sm font-medium text-gray-700 mb-1">Email or Phone</label>
+ <input type="text" id="loginIdentifier" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:border-primary outline-none" required>
+ </div>
+ <div>
+ <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+ <input type="password" id="loginPassword" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:border-primary outline-none" required>
+ </div>
+ <div class="flex items-center justify-between">
+ <label class="flex items-center">
+ <input type="checkbox" class="mr-2">
+ <span class="text-sm text-gray-600">Remember me</span>
+ </label>
+ <a href="#" class="text-sm text-primary hover:text-opacity-80">Forgot password?</a>
+ </div>
+ <button type="submit" class="w-full bg-primary text-white py-3 px-4 rounded-button font-medium hover:bg-opacity-90 transition-all whitespace-nowrap">Login</button>
+ <div class="text-center text-sm text-gray-600">
+ Don't have an account?
+ <button type="button" id="switchToSignup" class="text-primary hover:text-opacity-80">Sign up</button>
+ </div>
+ </form>
+ </div>
+ </div>
+ <!-- Signup Modal -->
+ <div id="signupModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+ <div class="bg-white rounded-lg p-6 w-full max-w-md">
+ <div class="flex justify-between items-center mb-6">
+ <h3 class="text-xl font-semibold">Create Account</h3>
+ <button id="closeSignupModal" class="text-gray-500 hover:text-gray-700">
+ <i class="ri-close-line ri-lg"></i>
+ </button>
+ </div>
+ <form id="signupForm" class="space-y-4">
+ <div>
+ <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+ <input type="text" id="signupName" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:border-primary outline-none" required>
+ </div>
+ <div>
+ <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+ <input type="email" id="signupEmail" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:border-primary outline-none" required>
+ </div>
+ <div>
+ <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+ <input type="tel" id="signupPhone" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:border-primary outline-none" required>
+ </div>
+ <div>
+ <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+ <input type="password" id="signupPassword" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:border-primary outline-none" required>
+ </div>
+ <div>
+ <label class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+ <input type="password" id="signupConfirmPassword" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:border-primary outline-none" required>
+ </div>
+ <button type="submit" class="w-full bg-primary text-white py-3 px-4 rounded-button font-medium hover:bg-opacity-90 transition-all whitespace-nowrap">Create Account</button>
+ <div class="text-center text-sm text-gray-600">
+ Already have an account?
+ <button type="button" id="switchToLogin" class="text-primary hover:text-opacity-80">Login</button>
+ </div>
+ </form>
+ </div>
+ </div>
+ </div>
+ </header>
+ <!-- Main Content -->
+ <main class="container mx-auto px-4 py-8">
+ <!-- Hero Section - BMI Calculator -->
+ <section class="bg-white rounded-lg shadow-md p-6 mb-8">
+ <h2 class="text-2xl font-bold mb-6">BMI Calculator</h2>
+ <div class="grid md:grid-cols-2 gap-8">
+ <div>
+ <form id="bmi-form" class="space-y-6">
+ <div>
+ <label class="block text-sm font-medium text-gray-700 mb-1">Height</label>
+ <div class="flex space-x-4">
+ <div class="flex-1">
+ <input type="number" id="height" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm" placeholder="Enter height">
+ </div>
+ <div class="w-24">
+ <select id="height-unit" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm pr-8 appearance-none bg-white">
+ <option value="cm">cm</option>
+ <option value="feet">feet</option>
+ </select>
+ </div>
+ </div>
+ </div>
+ <div>
+ <label class="block text-sm font-medium text-gray-700 mb-1">Weight</label>
+ <div class="flex space-x-4">
+ <div class="flex-1">
+ <input type="number" id="weight" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm" placeholder="Enter weight">
+ </div>
+ <div class="w-24">
+ <select id="weight-unit" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm pr-8 appearance-none bg-white">
+ <option value="kg">kg</option>
+ <option value="lbs">lbs</option>
+ </select>
+ </div>
+ </div>
+ </div>
+ <div>
+ <label class="block text-sm font-medium text-gray-700 mb-1">Age</label>
+ <input type="number" id="age" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm" placeholder="Enter age">
+ </div>
+ <div>
+ <label class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+ <div class="flex space-x-6">
+ <label class="custom-radio flex items-center">
+ <input type="radio" name="gender" value="male" checked>
+ <span class="radio-mark"></span>
+ <span>Male</span>
+ </label>
+ <label class="custom-radio flex items-center">
+ <input type="radio" name="gender" value="female">
+ <span class="radio-mark"></span>
+ <span>Female</span>
+ </label>
+ </div>
+ </div>
+ <button type="submit" class="w-full bg-primary text-white py-3 px-4 rounded-button font-medium hover:bg-opacity-90 transition-all whitespace-nowrap">Calculate BMI</button>
+ </form>
+ </div>
+ <div id="bmi-result" class="flex flex-col items-center justify-center bg-gray-50 rounded-lg p-6">
+ <div class="text-center">
+ <h3 class="text-xl font-semibold mb-2">BMI Categories</h3>
+ <div class="relative w-full h-12 bg-gradient-to-r from-blue-500 via-green-500 to-red-500 rounded-lg mb-6">
+ <div class="absolute -top-6 left-[15%] text-xs">18.5</div>
+ <div class="absolute -top-6 left-[35%] text-xs">24.9</div>
+ <div class="absolute -top-6 left-[60%] text-xs">29.9</div>
+ <div class="absolute -bottom-6 left-[10%] text-xs text-blue-600">Underweight</div>
+ <div class="absolute -bottom-6 left-[35%] text-xs text-green-600">Normal</div>
+ <div class="absolute -bottom-6 left-[60%] text-xs text-yellow-600">Overweight</div>
+ <div class="absolute -bottom-6 left-[85%] text-xs text-red-600">Obese</div>
+ </div>
+ <div class="mt-8">
+ <img src="https://readdy.ai/api/search-image?query=medical%20illustration%20of%20human%20body%20silhouettes%20showing%20different%20body%20mass%20index%20categories%2C%20minimalist%20style%2C%20clean%20professional%20medical%20diagram%20on%20white%20background&width=300&height=200&seq=7&orientation=landscape" alt="BMI Categories" class="w-full h-40 object-contain mb-6">
+ <div class="grid grid-cols-2 gap-4 text-left">
+ <div class="bg-white p-4 rounded-lg shadow-sm">
+ <h4 class="font-medium text-sm mb-2">Underweight (< 18.5)</h4>
+ <p class="text-xs text-gray-600">May indicate nutritional deficiencies and reduced immune function</p>
+ </div>
+ <div class="bg-white p-4 rounded-lg shadow-sm">
+ <h4 class="font-medium text-sm mb-2">Normal (18.5-24.9)</h4>
+ <p class="text-xs text-gray-600">Associated with optimal health and lower risk of diseases</p>
+ </div>
+ <div class="bg-white p-4 rounded-lg shadow-sm">
+ <h4 class="font-medium text-sm mb-2">Overweight (25-29.9)</h4>
+ <p class="text-xs text-gray-600">Increased risk of heart disease and other health conditions</p>
+ </div>
+ <div class="bg-white p-4 rounded-lg shadow-sm">
+ <h4 class="font-medium text-sm mb-2">Obese (≥ 30)</h4>
+ <p class="text-xs text-gray-600">Higher risk of serious health conditions and complications</p>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div id="bmi-category" class="text-lg font-medium text-green-600 mb-2">Normal Weight</div>
+ <p class="text-gray-600 mb-6">Your BMI indicates you have a healthy weight for your height.</p>
+ <div class="bg-white rounded-lg shadow-sm p-4 mb-4 w-full">
+ <h4 class="font-medium mb-2">Recommended Goal</h4>
+ <p id="bmi-recommendation" class="text-gray-700">Maintain Weight - Focus on balanced nutrition and regular exercise to maintain your healthy weight.</p>
+ </div>
+ <div class="flex space-x-3">
+ <a href="https://readdy.ai/home/d644ede1-05d3-40b0-88f6-b030144e4d4c/4b0a25c8-34aa-4aa6-a1e4-d1a8e30717fa" data-readdy="true" class="inline-block bg-primary text-white py-2 px-4 rounded-button font-medium hover:bg-opacity-90 transition-all whitespace-nowrap">View Detailed Report</a>
+ <button class="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-button font-medium hover:bg-gray-50 transition-all whitespace-nowrap">Save Results</button>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </section>
+ <!-- Body Analysis Section -->
+ <section class="bg-white rounded-lg shadow-md p-6 mb-8">
+ <h2 class="text-2xl font-bold mb-6">Body Type & Shape Analysis</h2>
+ <div class="grid md:grid-cols-2 gap-8">
+ <div>
+ <form id="body-analysis-form" class="space-y-6">
+ <div class="grid grid-cols-2 gap-4">
+ <div>
+ <label class="block text-sm font-medium text-gray-700 mb-1">Waist (cm)</label>
+ <input type="number" id="waist" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm" placeholder="Waist measurement">
+ </div>
+ <div>
+ <label class="block text-sm font-medium text-gray-700 mb-1">Hips (cm)</label>
+ <input type="number" id="hips" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm" placeholder="Hips measurement">
+ </div>
+ <div>
+ <label class="block text-sm font-medium text-gray-700 mb-1">Chest (cm)</label>
+ <input type="number" id="chest" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm" placeholder="Chest measurement">
+ </div>
+ <div>
+ <label class="block text-sm font-medium text-gray-700 mb-1">Shoulders (cm)</label>
+ <input type="number" id="shoulders" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm" placeholder="Shoulders measurement">
+ </div>
+ </div>
+ <div>
+ <label class="block text-sm font-medium text-gray-700 mb-1">Activity Level</label>
+ <select id="activity-level" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm pr-8 appearance-none bg-white">
+ <option value="sedentary">Sedentary (little or no exercise)</option>
+ <option value="light">Lightly active (light exercise 1-3 days/week)</option>
+ <option value="moderate">Moderately active (moderate exercise 3-5 days/week)</option>
+ <option value="active">Active (hard exercise 6-7 days/week)</option>
+ <option value="very-active">Very active (very hard exercise & physical job)</option>
+ </select>
+ </div>
+ <button type="submit" class="w-full bg-primary text-white py-3 px-4 rounded-button font-medium hover:bg-opacity-90 transition-all whitespace-nowrap" onclick="analyzeAndNavigate()">Analyze Body Type</button>
+ </form>
+ </div>
+ <div id="body-analysis-result" class="flex flex-col items-center justify-center bg-gray-50 rounded-lg p-6">
+ <div class="text-center">
+ <h3 class="text-xl font-semibold mb-4">Your Body Type</h3>
+ <div class="flex justify-center mb-6">
+ <img src="https://readdy.ai/api/search-image?query=illustration%20of%20mesomorph%20body%20type%20silhouette%2C%20minimalist%20design%2C%20clean%20lines%2C%20professional%20medical%20illustration%20style%2C%20white%20background&width=200&height=300&seq=2&orientation=portrait" alt="Body Type" class="h-48 object-contain">
+ </div>
+ <div class="bg-white rounded-lg shadow-sm p-4 mb-4">
+ <h4 class="font-medium text-lg mb-2">Mesomorph</h4>
+ <p class="text-gray-700 mb-4">You have an athletic build with well-defined muscles. Your body responds well to exercise and you can gain or lose weight relatively easily.</p>
+ <div class="space-y-2">
+ <div class="flex items-center">
+ <div class="w-6 h-6 flex items-center justify-center text-primary">
+ <i class="ri-check-line ri-lg"></i>
+ </div>
+ <span class="text-sm text-gray-700">Naturally muscular physique</span>
+ </div>
+ <div class="flex items-center">
+ <div class="w-6 h-6 flex items-center justify-center text-primary">
+ <i class="ri-check-line ri-lg"></i>
+ </div>
+ <span class="text-sm text-gray-700">Responsive to strength training</span>
+ </div>
+ <div class="flex items-center">
+ <div class="w-6 h-6 flex items-center justify-center text-primary">
+ <i class="ri-check-line ri-lg"></i>
+ </div>
+ <span class="text-sm text-gray-700">Efficient metabolism</span>
+ </div>
+ </div>
+ </div>
+ <button class="bg-primary text-white py-2 px-4 rounded-button font-medium hover:bg-opacity-90 transition-all whitespace-nowrap">View Detailed Analysis</button>
+ </div>
+ </div>
+ </div>
+ </div>
+ </section>
+ <!-- Goal Selection & Recommendations -->
+ <section class="mb-8">
+ <h2 class="text-2xl font-bold mb-6">Choose Your Goal</h2>
+ <div class="grid md:grid-cols-3 gap-6">
+ <div class="bg-white rounded-lg shadow-md overflow-hidden border-t-4 border-red-500 hover:shadow-lg transition-shadow">
+ <div class="p-6">
+ <h3 class="text-xl font-semibold mb-2">Lose Weight</h3>
+ <p class="text-gray-600 mb-4">Reduce body fat while preserving muscle mass through a calorie deficit and proper nutrition.</p>
+ <div class="mb-4">
+ <div class="flex justify-between text-sm mb-1">
+ <span>Daily Calories</span>
+ <span class="font-medium">1,800 kcal</span>
+ </div>
+ <div class="w-full bg-gray-200 rounded-full h-2">
+ <div class="bg-red-500 h-2 rounded-full" style="width: 70%"></div>
+ </div>
+ </div>
+ <div class="mb-6">
+ <h4 class="text-sm font-medium mb-3">Macronutrient Breakdown</h4>
+ <div id="lose-weight-chart" class="h-48"></div>
+ </div>
+ <button class="w-full bg-red-500 text-white py-3 px-4 rounded-button font-medium hover:bg-opacity-90 transition-all whitespace-nowrap" onclick="selectGoalAndNavigate('lose')">Select This Goal</button>
+ </div>
+ </div>
+ <div class="bg-white rounded-lg shadow-md overflow-hidden border-t-4 border-green-500 hover:shadow-lg transition-shadow">
+ <div class="p-6">
+ <h3 class="text-xl font-semibold mb-2">Maintain Weight</h3>
+ <p class="text-gray-600 mb-4">Balance your nutrition and exercise to maintain your current weight and improve overall health.</p>
+ <div class="mb-4">
+ <div class="flex justify-between text-sm mb-1">
+ <span>Daily Calories</span>
+ <span class="font-medium">2,200 kcal</span>
+ </div>
+ <div class="w-full bg-gray-200 rounded-full h-2">
+ <div class="bg-green-500 h-2 rounded-full" style="width: 100%"></div>
+ </div>
+ </div>
+ <div class="mb-6">
+ <h4 class="text-sm font-medium mb-3">Macronutrient Breakdown</h4>
+ <div id="maintain-weight-chart" class="h-48"></div>
+ </div>
+ <button class="w-full bg-green-500 text-white py-3 px-4 rounded-button font-medium hover:bg-opacity-90 transition-all whitespace-nowrap" onclick="selectGoalAndNavigate('maintain')">Select This Goal</button>
+ </div>
+ </div>
+ <div class="bg-white rounded-lg shadow-md overflow-hidden border-t-4 border-blue-500 hover:shadow-lg transition-shadow">
+ <div class="p-6">
+ <h3 class="text-xl font-semibold mb-2">Gain Weight</h3>
+ <p class="text-gray-600 mb-4">Build muscle mass through a calorie surplus, high protein intake, and strategic strength training.</p>
+ <div class="mb-4">
+ <div class="flex justify-between text-sm mb-1">
+ <span>Daily Calories</span>
+ <span class="font-medium">2,600 kcal</span>
+ </div>
+ <div class="w-full bg-gray-200 rounded-full h-2">
+ <div class="bg-blue-500 h-2 rounded-full" style="width: 130%"></div>
+ </div>
+ </div>
+ <div class="mb-6">
+ <h4 class="text-sm font-medium mb-3">Macronutrient Breakdown</h4>
+ <div id="gain-weight-chart" class="h-48"></div>
+ </div>
+ <button class="w-full bg-blue-500 text-white py-3 px-4 rounded-button font-medium hover:bg-opacity-90 transition-all whitespace-nowrap" onclick="selectGoalAndNavigate('gain')">Select This Goal</button>
+ </div>
+ </div>
+ </div>
+ </div>
+ </section>
+ <!-- Personalized Diet Planner -->
+ <section class="bg-white rounded-lg shadow-md p-6 mb-8">
+ <div class="flex justify-between items-center mb-6">
+ <h2 class="text-2xl font-bold">Personalized Diet Plan</h2>
+ <div class="flex space-x-3">
+ <button id="createPlanBtn" class="bg-primary text-white py-2 px-4 rounded-button font-medium hover:bg-opacity-90 transition-all whitespace-nowrap" onclick="createPlanAndNavigate()">
+ <i class="ri-add-line ri-lg mr-1"></i> Create Diet Plan
+ </button>
+ </div>
+ </div>
+ <div id="emptyPlanState" class="text-center py-12">
+ <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+ <i class="ri-restaurant-line ri-2x text-gray-400"></i>
+ </div>
+ <h3 class="text-lg font-medium text-gray-900 mb-2">No Diet Plan Created Yet</h3>
+ <p class="text-gray-500 mb-6">Create your personalized diet plan based on your goals and preferences.</p>
+ <button id="getStartedBtn" class="bg-primary text-white py-2 px-6 rounded-button font-medium hover:bg-opacity-90 transition-all whitespace-nowrap">
+ Get Started
+ </button>
+ </div>
+ <div id="dietPlanContent" class="hidden">
+ <div class="border-b border-gray-200 mb-6">
+ <div class="flex overflow-x-auto">
+ <button class="tab-active px-4 py-2 font-medium text-sm whitespace-nowrap">Monday, May 5</button>
+ <button class="text-gray-500 px-4 py-2 font-medium text-sm whitespace-nowrap">Tuesday, May 6</button>
+ <button class="text-gray-500 px-4 py-2 font-medium text-sm whitespace-nowrap">Wednesday, May 7</button>
+ <button class="text-gray-500 px-4 py-2 font-medium text-sm whitespace-nowrap">Thursday, May 8</button>
+ <button class="text-gray-500 px-4 py-2 font-medium text-sm whitespace-nowrap">Friday, May 9</button>
+ <button class="text-gray-500 px-4 py-2 font-medium text-sm whitespace-nowrap">Saturday, May 10</button>
+ <button class="text-gray-500 px-4 py-2 font-medium text-sm whitespace-nowrap">Sunday, May 11</button>
+ </div>
+ </div>
+ <div class="space-y-6">
+ <!-- Breakfast -->
+ <div class="border border-gray-200 rounded-lg overflow-hidden">
+ <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+ <div class="flex justify-between items-center">
+ <h3 class="font-medium">Breakfast <span class="text-gray-500 text-sm ml-2">7:30 AM</span></h3>
+ <div class="flex items-center text-sm text-gray-500">
+ <span class="mr-4">450 kcal</span>
+ <button class="text-gray-400 hover:text-gray-600">
+ <i class="ri-more-2-fill ri-lg"></i>
+ </button>
+ </div>
+ </div>
+ </div>
+ <div class="p-4">
+ <div class="flex flex-col md:flex-row">
+ <div class="md:w-1/4 mb-4 md:mb-0 md:mr-6">
+ <img src="https://readdy.ai/api/search-image?query=healthy%20breakfast%20with%20greek%20yogurt%2C%20granola%2C%20fresh%20berries%2C%20honey%20drizzle%2C%20in%20a%20white%20bowl%20on%20wooden%20table%2C%20bright%20morning%20light%2C%20high%20quality%20food%20photography&width=300&height=200&seq=3&orientation=landscape" alt="Breakfast" class="w-full h-40 object-cover rounded-lg">
+ </div>
+ <div class="md:w-3/4">
+ <h4 class="font-medium text-lg mb-2">Greek Yogurt Parfait with Berries</h4>
+ <div class="flex flex-wrap gap-2 mb-4">
+ <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">High Protein</span>
+ <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Low Glycemic</span>
+ <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">Antioxidant Rich</span>
+ </div>
+ <div class="grid grid-cols-4 gap-4 mb-4">
+ <div class="text-center">
+ <div class="text-xl font-medium text-gray-900">450</div>
+ <div class="text-xs text-gray-500">Calories</div>
+ </div>
+ <div class="text-center">
+ <div class="text-xl font-medium text-gray-900">28g</div>
+ <div class="text-xs text-gray-500">Protein</div>
+ </div>
+ <div class="text-center">
+ <div class="text-xl font-medium text-gray-900">45g</div>
+ <div class="text-xs text-gray-500">Carbs</div>
+ </div>
+ <div class="text-center">
+ <div class="text-xl font-medium text-gray-900">12g</div>
+ <div class="text-xs text-gray-500">Fat</div>
+ </div>
+ </div>
+ <div>
+ <h5 class="font-medium text-sm mb-2">Ingredients:</h5>
+ <ul class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-600">
+ <li class="flex items-center">
+ <i class="ri-checkbox-circle-line text-green-500 mr-1"></i>
+ 1 cup Greek yogurt (2% fat)
+ </li>
+ <li class="flex items-center">
+ <i class="ri-checkbox-circle-line text-green-500 mr-1"></i>
+ 1/3 cup low-sugar granola
+ </li>
+ <li class="flex items-center">
+ <i class="ri-checkbox-circle-line text-green-500 mr-1"></i>
+ 1/2 cup mixed berries
+ </li>
+ <li class="flex items-center">
+ <i class="ri-checkbox-circle-line text-green-500 mr-1"></i>
+ 1 tbsp honey
+ </li>
+ <li class="flex items-center">
+ <i class="ri-checkbox-circle-line text-green-500 mr-1"></i>
+ 1 tbsp chia seeds
+ </li>
+ <li class="flex items-center">
+ <i class="ri-checkbox-circle-line text-green-500 mr-1"></i>
+ 5 almonds, chopped
+ </li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <!-- Lunch -->
+ <div class="border border-gray-200 rounded-lg overflow-hidden">
+ <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+ <div class="flex justify-between items-center">
+ <h3 class="font-medium">Lunch <span class="text-gray-500 text-sm ml-2">12:30 PM</span></h3>
+ <div class="flex items-center text-sm text-gray-500">
+ <span class="mr-4">620 kcal</span>
+ <button class="text-gray-400 hover:text-gray-600">
+ <i class="ri-more-2-fill ri-lg"></i>
+ </button>
+ </div>
+ </div>
+ </div>
+ <div class="p-4">
+ <div class="flex flex-col md:flex-row">
+ <div class="md:w-1/4 mb-4 md:mb-0 md:mr-6">
+ <img src="https://readdy.ai/api/search-image?query=healthy%20chicken%20quinoa%20bowl%20with%20roasted%20vegetables%2C%20avocado%2C%20spinach%2C%20in%20a%20white%20bowl%20on%20wooden%20table%2C%20bright%20natural%20light%2C%20high%20quality%20food%20photography&width=300&height=200&seq=4&orientation=landscape" alt="Lunch" class="w-full h-40 object-cover rounded-lg">
+ </div>
+ <div class="md:w-3/4">
+ <h4 class="font-medium text-lg mb-2">Grilled Chicken Quinoa Bowl</h4>
+ <div class="flex flex-wrap gap-2 mb-4">
+ <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">High Protein</span>
+ <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">Fiber Rich</span>
+ <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded">Lean Protein</span>
+ </div>
+ <div class="grid grid-cols-4 gap-4 mb-4">
+ <div class="text-center">
+ <div class="text-xl font-medium text-gray-900">620</div>
+ <div class="text-xs text-gray-500">Calories</div>
+ </div>
+ <div class="text-center">
+ <div class="text-xl font-medium text-gray-900">42g</div>
+ <div class="text-xs text-gray-500">Protein</div>
+ </div>
+ <div class="text-center">
+ <div class="text-xl font-medium text-gray-900">58g</div>
+ <div class="text-xs text-gray-500">Carbs</div>
+ </div>
+ <div class="text-center">
+ <div class="text-xl font-medium text-gray-900">22g</div>
+ <div class="text-xs text-gray-500">Fat</div>
+ </div>
+ </div>
+ <div>
+ <h5 class="font-medium text-sm mb-2">Ingredients:</h5>
+ <ul class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-600">
+ <li class="flex items-center">
+ <i class="ri-checkbox-circle-line text-green-500 mr-1"></i>
+ 5 oz grilled chicken breast
+ </li>
+ <li class="flex items-center">
+ <i class="ri-checkbox-circle-line text-green-500 mr-1"></i>
+ 3/4 cup cooked quinoa
+ </li>
+ <li class="flex items-center">
+ <i class="ri-checkbox-circle-line text-green-500 mr-1"></i>
+ 1 cup roasted vegetables
+ </li>
+ <li class="flex items-center">
+ <i class="ri-checkbox-circle-line text-green-500 mr-1"></i>
+ 1/4 avocado, sliced
+ </li>
+ <li class="flex items-center">
+ <i class="ri-checkbox-circle-line text-green-500 mr-1"></i>
+ 1 cup baby spinach
+ </li>
+ <li class="flex items-center">
+ <i class="ri-checkbox-circle-line text-green-500 mr-1"></i>
+ 2 tbsp olive oil dressing
+ </li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <!-- Dinner -->
+ <div class="border border-gray-200 rounded-lg overflow-hidden">
+ <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+ <div class="flex justify-between items-center">
+ <h3 class="font-medium">Dinner <span class="text-gray-500 text-sm ml-2">7:00 PM</span></h3>
+ <div class="flex items-center text-sm text-gray-500">
+ <span class="mr-4">580 kcal</span>
+ <button class="text-gray-400 hover:text-gray-600">
+ <i class="ri-more-2-fill ri-lg"></i>
+ </button>
+ </div>
+ </div>
+ </div>
+ <div class="p-4">
+ <div class="flex flex-col md:flex-row">
+ <div class="md:w-1/4 mb-4 md:mb-0 md:mr-6">
+ <img src="https://readdy.ai/api/search-image?query=baked%20salmon%20with%20asparagus%20and%20sweet%20potato%2C%20lemon%20garnish%2C%20on%20a%20white%20plate%2C%20warm%20evening%20light%2C%20high%20quality%20food%20photography&width=300&height=200&seq=5&orientation=landscape" alt="Dinner" class="w-full h-40 object-cover rounded-lg">
+ </div>
+ <div class="md:w-3/4">
+ <h4 class="font-medium text-lg mb-2">Baked Salmon with Roasted Vegetables</h4>
+ <div class="flex flex-wrap gap-2 mb-4">
+ <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">Omega-3 Rich</span>
+ <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Low Carb</span>
+ <span class="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded">Heart Healthy</span>
+ </div>
+ <div class="grid grid-cols-4 gap-4 mb-4">
+ <div class="text-center">
+ <div class="text-xl font-medium text-gray-900">580</div>
+ <div class="text-xs text-gray-500">Calories</div>
+ </div>
+ <div class="text-center">
+ <div class="text-xl font-medium text-gray-900">38g</div>
+ <div class="text-xs text-gray-500">Protein</div>
+ </div>
+ <div class="text-center">
+ <div class="text-xl font-medium text-gray-900">35g</div>
+ <div class="text-xs text-gray-500">Carbs</div>
+ </div>
+ <div class="text-center">
+ <div class="text-xl font-medium text-gray-900">28g</div>
+ <div class="text-xs text-gray-500">Fat</div>
+ </div>
+ </div>
+ <div>
+ <h5 class="font-medium text-sm mb-2">Ingredients:</h5>
+ <ul class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-600">
+ <li class="flex items-center">
+ <i class="ri-checkbox-circle-line text-green-500 mr-1"></i>
+ 5 oz wild-caught salmon fillet
+ </li>
+ <li class="flex items-center">
+ <i class="ri-checkbox-circle-line text-green-500 mr-1"></i>
+ 1 medium sweet potato
+ </li>
+ <li class="flex items-center">
+ <i class="ri-checkbox-circle-line text-green-500 mr-1"></i>
+ 8 asparagus spears
+ </li>
+ <li class="flex items-center">
+ <i class="ri-checkbox-circle-line text-green-500 mr-1"></i>
+ 1 tbsp olive oil
+ </li>
+ <li class="flex items-center">
+ <i class="ri-checkbox-circle-line text-green-500 mr-1"></i>
+ 1 lemon (for garnish)
+ </li>
+ <li class="flex items-center">
+ <i class="ri-checkbox-circle-line text-green-500 mr-1"></i>
+ Fresh herbs and spices
+ </li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <!-- Snack -->
+ <div class="border border-gray-200 rounded-lg overflow-hidden">
+ <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+ <div class="flex justify-between items-center">
+ <h3 class="font-medium">Snack <span class="text-gray-500 text-sm ml-2">4:00 PM</span></h3>
+ <div class="flex items-center text-sm text-gray-500">
+ <span class="mr-4">220 kcal</span>
+ <button class="text-gray-400 hover:text-gray-600">
+ <i class="ri-more-2-fill ri-lg"></i>
+ </button>
+ </div>
+ </div>
+ </div>
+ <div class="p-4">
+ <div class="flex flex-col md:flex-row">
+ <div class="md:w-1/4 mb-4 md:mb-0 md:mr-6">
+ <img src="https://readdy.ai/api/search-image?query=apple%20slices%20with%20almond%20butter%2C%20in%20a%20small%20white%20plate%2C%20afternoon%20light%2C%20healthy%20snack%2C%20high%20quality%20food%20photography&width=300&height=200&seq=6&orientation=landscape" alt="Snack" class="w-full h-40 object-cover rounded-lg">
+ </div>
+ <div class="md:w-3/4">
+ <h4 class="font-medium text-lg mb-2">Apple Slices with Almond Butter</h4>
+ <div class="flex flex-wrap gap-2 mb-4">
+ <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">Fiber Rich</span>
+ <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">Healthy Fats</span>
+ <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Low Glycemic</span>
+ </div>
+ <div class="grid grid-cols-4 gap-4 mb-4">
+ <div class="text-center">
+ <div class="text-xl font-medium text-gray-900">220</div>
+ <div class="text-xs text-gray-500">Calories</div>
+ </div>
+ <div class="text-center">
+ <div class="text-xl font-medium text-gray-900">6g</div>
+ <div class="text-xs text-gray-500">Protein</div>
+ </div>
+ <div class="text-center">
+ <div class="text-xl font-medium text-gray-900">25g</div>
+ <div class="text-xs text-gray-500">Carbs</div>
+ </div>
+ <div class="text-center">
+ <div class="text-xl font-medium text-gray-900">12g</div>
+ <div class="text-xs text-gray-500">Fat</div>
+ </div>
+ </div>
+ <div>
+ <h5 class="font-medium text-sm mb-2">Ingredients:</h5>
+ <ul class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-600">
+ <li class="flex items-center">
+ <i class="ri-checkbox-circle-line text-green-500 mr-1"></i>
+ 1 medium apple
+ </li>
+ <li class="flex items-center">
+ <i class="ri-checkbox-circle-line text-green-500 mr-1"></i>
+ 2 tbsp natural almond butter
+ </li>
+ <li class="flex items-center">
+ <i class="ri-checkbox-circle-line text-green-500 mr-1"></i>
+ 1 tsp cinnamon (optional)
+ </li>
+ <li class="flex items-center">
+ <i class="ri-checkbox-circle-line text-green-500 mr-1"></i>
+ 1 tsp honey (optional)
+ </li>
+ </ul>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </section>
+ <!-- Progress Tracking Dashboard -->
+ <section class="bg-white rounded-lg shadow-md p-6 mb-8">
+ <div class="flex justify-between items-center mb-6">
+ <h2 class="text-2xl font-bold">Progress Tracking</h2>
+ <div class="flex space-x-3">
+ <button class="bg-gray-100 text-gray-700 py-2 px-4 rounded-button font-medium hover:bg-gray-200 transition-all whitespace-nowrap">
+ <i class="ri-calendar-line ri-lg mr-1"></i> Last 30 Days
+ </button>
+ <button class="bg-primary text-white py-2 px-4 rounded-button font-medium hover:bg-opacity-90 transition-all whitespace-nowrap">
+ <i class="ri-add-line ri-lg mr-1"></i> Log Progress
+ </button>
+ </div>
+ </div>
+ <div class="grid md:grid-cols-2 gap-6">
+ <div class="border border-gray-200 rounded-lg p-4">
+ <h3 class="font-medium mb-4">Weight Progress</h3>
+ <div id="weight-chart" class="h-64"></div>
+ </div>
+ <div class="border border-gray-200 rounded-lg p-4">
+ <h3 class="font-medium mb-4">Body Measurements</h3>
+ <div id="measurements-chart" class="h-64"></div>
+ </div>
+ <div class="border border-gray-200 rounded-lg p-4">
+ <h3 class="font-medium mb-4">Calorie Intake</h3>
+ <div id="calorie-chart" class="h-64"></div>
+ </div>
+ <div class="border border-gray-200 rounded-lg p-4">
+ <h3 class="font-medium mb-4">Macronutrient Distribution</h3>
+ <div id="macro-chart" class="h-64"></div>
+ </div>
+ </div>
+ </div>
+ </section>
+ <!-- Calendar & Reminders -->
+ <section class="bg-white rounded-lg shadow-md p-6 mb-8">
+ <div class="flex justify-between items-center mb-6">
+ <h2 class="text-2xl font-bold">Calendar & Reminders</h2>
+ <div class="flex space-x-3">
+ <button class="bg-gray-100 text-gray-700 py-2 px-4 rounded-button font-medium hover:bg-gray-200 transition-all whitespace-nowrap">
+ <i class="ri-calendar-line ri-lg mr-1"></i> Month View
+ </button>
+ <button class="bg-primary text-white py-2 px-4 rounded-button font-medium hover:bg-opacity-90 transition-all whitespace-nowrap">
+ <i class="ri-alarm-line ri-lg mr-1"></i> Set Reminder
+ </button>
+ </div>
+ </div>
+ <div class="grid md:grid-cols-3 gap-6">
+ <div class="md:col-span-2 border border-gray-200 rounded-lg p-4">
+ <div class="flex justify-between items-center mb-4">
+ <h3 class="font-medium">May 2025</h3>
+ <div class="flex space-x-2">
+ <button class="p-1 text-gray-500 hover:text-gray-900">
+ <i class="ri-arrow-left-s-line ri-lg"></i>
+ </button>
+ <button class="p-1 text-gray-500 hover:text-gray-900">
+ <i class="ri-arrow-right-s-line ri-lg"></i>
+ </button>
+ </div>
+ </div>
+ <div class="grid grid-cols-7 gap-1 mb-2 text-center text-sm font-medium text-gray-500">
+ <div>Sun</div>
+ <div>Mon</div>
+ <div>Tue</div>
+ <div>Wed</div>
+ <div>Thu</div>
+ <div>Fri</div>
+ <div>Sat</div>
+ </div>
+ <div class="grid grid-cols-7 gap-1 text-sm">
+ <div class="p-2 text-gray-400">27</div>
+ <div class="p-2 text-gray-400">28</div>
+ <div class="p-2 text-gray-400">29</div>
+ <div class="p-2 text-gray-400">30</div>
+ <div class="p-2">1</div>
+ <div class="p-2">2</div>
+ <div class="p-2">3</div>
+ <div class="p-2">4</div>
+ <div class="p-2 bg-primary bg-opacity-10 rounded font-medium text-primary relative">
+ 5
+ <div class="absolute bottom-1 right-1 w-1.5 h-1.5 bg-primary rounded-full"></div>
+ </div>
+ <div class="p-2">6</div>
+ <div class="p-2">7</div>
+ <div class="p-2">8</div>
+ <div class="p-2">9</div>
+ <div class="p-2">10</div>
+ <div class="p-2">11</div>
+ <div class="p-2">12</div>
+ <div class="p-2">13</div>
+ <div class="p-2">14</div>
+ <div class="p-2">15</div>
+ <div class="p-2">16</div>
+ <div class="p-2">17</div>
+ <div class="p-2">18</div>
+ <div class="p-2">19</div>
+ <div class="p-2">20</div>
+ <div class="p-2">21</div>
+ <div class="p-2">22</div>
+ <div class="p-2">23</div>
+ <div class="p-2">24</div>
+ <div class="p-2">25</div>
+ <div class="p-2">26</div>
+ <div class="p-2">27</div>
+ <div class="p-2">28</div>
+ <div class="p-2">29</div>
+ <div class="p-2">30</div>
+ <div class="p-2">31</div>
+ <div class="p-2 text-gray-400">1</div>
+ </div>
+ </div>
+ <div class="border border-gray-200 rounded-lg p-4">
+ <h3 class="font-medium mb-4">Reminders</h3>
+ <div class="space-y-4">
+ <div class="flex items-start">
+ <div class="w-10 h-10 flex items-center justify-center bg-blue-100 text-blue-600 rounded-full mr-3">
+ <i class="ri-water-cup-line ri-lg"></i>
+ </div>
+ <div class="flex-1">
+ <div class="flex justify-between">
+ <h4 class="font-medium">Drink Water</h4>
+ <label class="custom-switch">
+ <input type="checkbox" checked>
+ <span class="switch-slider"></span>
+ </label>
+ </div>
+ <p class="text-sm text-gray-500">Every 2 hours, 8am - 8pm</p>
+ </div>
+ </div>
+ <div class="flex items-start">
+ <div class="w-10 h-10 flex items-center justify-center bg-green-100 text-green-600 rounded-full mr-3">
+ <i class="ri-restaurant-line ri-lg"></i>
+ </div>
+ <div class="flex-1">
+ <div class="flex justify-between">
+ <h4 class="font-medium">Meal Times</h4>
+ <label class="custom-switch">
+ <input type="checkbox" checked>
+ <span class="switch-slider"></span>
+ </label>
+ </div>
+ <p class="text-sm text-gray-500">Breakfast, Lunch, Dinner</p>
+ </div>
+ </div>
+ <div class="flex items-start">
+ <div class="w-10 h-10 flex items-center justify-center bg-purple-100 text-purple-600 rounded-full mr-3">
+ <i class="ri-heart-pulse-line ri-lg"></i>
+ </div>
+ <div class="flex-1">
+ <div class="flex justify-between">
+ <h4 class="font-medium">Workout</h4>
+ <label class="custom-switch">
+ <input type="checkbox" checked>
+ <span class="switch-slider"></span>
+ </label>
+ </div>
+ <p class="text-sm text-gray-500">Mon, Wed, Fri at 6:00 PM</p>
+ </div>
+ </div>
+ <div class="flex items-start">
+ <div class="w-10 h-10 flex items-center justify-center bg-yellow-100 text-yellow-600 rounded-full mr-3">
+ <i class="ri-scales-3-line ri-lg"></i>
+ </div>
+ <div class="flex-1">
+ <div class="flex justify-between">
+ <h4 class="font-medium">Weight Check-in</h4>
+ <label class="custom-switch">
+ <input type="checkbox">
+ <span class="switch-slider"></span>
+ </label>
+ </div>
+ <p class="text-sm text-gray-500">Every Monday at 8:00 AM</p>
+ </div>
+ </div>
+ </div>
+ <button class="w-full mt-4 bg-gray-100 text-gray-700 py-2 px-4 rounded-button font-medium hover:bg-gray-200 transition-all whitespace-nowrap">
+ <i class="ri-add-line ri-lg mr-1"></i> Add New Reminder
+ </button>
+ </div>
+ </div>
+ </div>
+ </section>
+ </main>
+ <!-- Footer -->
+ <footer class="bg-gray-800 text-white py-10">
+ <div class="container mx-auto px-4">
+ <div class="grid md:grid-cols-4 gap-8">
+ <div>
+ <h3 class="text-xl font-['Pacifico'] mb-4">HealthAssist</h3>
+ <p class="text-gray-300 mb-4">Your personal health and nutrition assistant to help you achieve your fitness goals.</p>
+ <div class="flex space-x-4">
+ <a href="#" class="text-gray-300 hover:text-white">
+ <i class="ri-facebook-fill ri-lg"></i>
+ </a>
+ <a href="#" class="text-gray-300 hover:text-white">
+ <i class="ri-twitter-fill ri-lg"></i>
+ </a>
+ <a href="#" class="text-gray-300 hover:text-white">
+ <i class="ri-instagram-fill ri-lg"></i>
+ </a>
+ <a href="#" class="text-gray-300 hover:text-white">
+ <i class="ri-linkedin-fill ri-lg"></i>
+ </a>
+ </div>
+ </div>
+ <div>
+ <h4 class="font-medium mb-4">Features</h4>
+ <ul class="space-y-2 text-gray-300">
+ <li><a href="#" class="hover:text-white">BMI Calculator</a></li>
+ <li><a href="#" class="hover:text-white">Diet Plans</a></li>
+ <li><a href="#" class="hover:text-white">Progress Tracking</a></li>
+ <li><a href="#" class="hover:text-white">Meal Calendar</a></li>
+ <li><a href="#" class="hover:text-white">Smart Reminders</a></li>
+ </ul>
+ </div>
+ <div>
+ <h4 class="font-medium mb-4">Resources</h4>
+ <ul class="space-y-2 text-gray-300">
+ <li><a href="#" class="hover:text-white">Nutrition Guide</a></li>
+ <li><a href="#" class="hover:text-white">Fitness Tips</a></li>
+ <li><a href="#" class="hover:text-white">Recipe Database</a></li>
+ <li><a href="#" class="hover:text-white">Expert Advice</a></li>
+ <li><a href="#" class="hover:text-white">Community Forum</a></li>
+ </ul>
+ </div>
+ <div>
+ <h4 class="font-medium mb-4">Contact Us</h4>
+ <ul class="space-y-2 text-gray-300">
+ <li class="flex items-start">
+ <i class="ri-mail-line ri-lg mr-2 mt-1"></i>
+ <span>bizzarecourtesy@gmail.com</span>
+ </li>
+ <li class="flex items-start">
+ <i class="ri-phone-line ri-lg mr-2 mt-1"></i>
+ <span>6380472119</span>
+ </li>
+ <li class="flex items-start">
+ <i class="ri-user-line ri-lg mr-2 mt-1"></i>
+ <span>Janani, Priyam Vadha, Bowshika</span>
+ </li>
+ </ul>
+ </div>
+ </div>
+ <div class="border-t border-gray-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+ <p class="text-gray-400 text-sm mb-4 md:mb-0">© 2025 HealthAssist. All rights reserved.</p>
+ <div class="flex space-x-6 text-sm text-gray-400">
+ <a href="#" class="hover:text-white">Privacy Policy</a>
+ <a href="#" class="hover:text-white">Terms of Service</a>
+ <a href="#" class="hover:text-white">Cookie Policy</a>
+ </div>
+ </div>
+ </div>
+ </footer>
+ <script>
+ // Navigation functions
+ function calculateAndNavigate() {
+     // Store BMI data in localStorage
+     const height = document.getElementById('height').value;
+     const weight = document.getElementById('weight').value;
+     const heightUnit = document.getElementById('height-unit').value;
+     const weightUnit = document.getElementById('weight-unit').value;
+     
+     localStorage.setItem('healthData', JSON.stringify({
+         height,
+         weight,
+         heightUnit,
+         weightUnit,
+         timestamp: new Date().toISOString()
+     }));
+     // Show confirmation modal
+     showNavigationModal('BMI Results Saved', 'Your BMI calculation has been saved. Would you like to proceed to the detailed analysis?', '/detailed-analysis');
+ }
+ function analyzeAndNavigate() {
+     // Store body analysis data
+     const measurements = {
+         waist: document.getElementById('waist').value,
+         hips: document.getElementById('hips').value,
+         chest: document.getElementById('chest').value,
+         shoulders: document.getElementById('shoulders').value,
+         activityLevel: document.getElementById('activity-level').value,
+         timestamp: new Date().toISOString()
+     };
+     
+     localStorage.setItem('bodyAnalysis', JSON.stringify(measurements));
+     // Show confirmation modal
+     showNavigationModal('Body Analysis Complete', 'Your body analysis has been saved. Would you like to view your personalized recommendations?', '/recommendations');
+ }
+ function selectGoalAndNavigate(goalType) {
+     // Store selected goal
+     localStorage.setItem('selectedGoal', goalType);
+     localStorage.setItem('goalTimestamp', new Date().toISOString());
+     // Show confirmation modal
+     const goalMessages = {
+         lose: 'Weight Loss Program',
+         maintain: 'Weight Maintenance Program',
+         gain: 'Weight Gain Program'
+     };
+     
+     showNavigationModal('Goal Selected', `You've selected the ${goalMessages[goalType]}. Ready to start your personalized plan?`, '/goal-program');
+ }
+ function createPlanAndNavigate() {
+     // Show confirmation modal
+     showNavigationModal('Create New Plan', 'Would you like to create a new personalized diet plan?', '/create-plan');
+ }
+ // Navigation modal
+ function showNavigationModal(title, message, destination) {
+     // Create modal element
+     const modal = document.createElement('div');
+     modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+     modal.innerHTML = `
+         <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+             <h3 class="text-xl font-semibold mb-4">${title}</h3>
+             <p class="text-gray-600 mb-6">${message}</p>
+             <div class="flex justify-end space-x-3">
+                 <button class="bg-gray-100 text-gray-700 py-2 px-4 rounded-button font-medium hover:bg-gray-200 transition-all whitespace-nowrap" onclick="closeNavigationModal()">Stay Here</button>
+                 <button class="bg-primary text-white py-2 px-4 rounded-button font-medium hover:bg-opacity-90 transition-all whitespace-nowrap" onclick="proceedToNextPage('${destination}')">Continue</button>
+             </div>
+         </div>
+     `;
+     document.body.appendChild(modal);
+ }
+ function closeNavigationModal() {
+     const modal = document.querySelector('.fixed.inset-0');
+     if (modal) {
+         modal.remove();
+     }
+ }
+ function proceedToNextPage(destination) {
+     // Here you would typically navigate to the next page
+     // For demo purposes, we'll show a success message
+     closeNavigationModal();
+     const successMessage = document.createElement('div');
+     successMessage.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded shadow-lg';
+     successMessage.textContent = 'Navigating to next page...';
+     document.body.appendChild(successMessage);
+     setTimeout(() => successMessage.remove(), 3000);
+     
+     // In a real application, you would use:
+     // window.location.href = destination;
+ }
+ document.addEventListener('DOMContentLoaded', function() {
+ // Diet Plan Functionality
+ const createPlanBtn = document.getElementById('createPlanBtn');
+ const getStartedBtn = document.getElementById('getStartedBtn');
+ const emptyPlanState = document.getElementById('emptyPlanState');
+ const dietPlanContent = document.getElementById('dietPlanContent');
+ function showDietPlanForm() {
+ const customizationForm = document.createElement('div');
+ customizationForm.className = 'bg-white rounded-lg p-6';
+ customizationForm.innerHTML = `
+ <h3 class="text-xl font-semibold mb-6">Customize Your Diet Plan</h3>
+ <form id="dietPlanForm" class="space-y-6">
+ <div>
+ <label class="block text-sm font-medium text-gray-700 mb-1">Plan Duration</label>
+ <select class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm" required>
+ <option value="7">7 Days</option>
+ <option value="14">14 Days</option>
+ <option value="30">30 Days</option>
+ </select>
+ </div>
+ <div>
+ <label class="block text-sm font-medium text-gray-700 mb-1">Dietary Preferences</label>
+ <div class="space-y-2">
+ <label class="custom-checkbox flex items-center">
+ <input type="checkbox" name="preferences" value="vegetarian">
+ <span class="checkbox-mark"></span>
+ <span>Vegetarian</span>
+ </label>
+ <label class="custom-checkbox flex items-center">
+ <input type="checkbox" name="preferences" value="vegan">
+ <span class="checkbox-mark"></span>
+ <span>Vegan</span>
+ </label>
+ <label class="custom-checkbox flex items-center">
+ <input type="checkbox" name="preferences" value="gluten-free">
+ <span class="checkbox-mark"></span>
+ <span>Gluten-free</span>
+ </label>
+ </div>
+ </div>
+ <div>
+ <label class="block text-sm font-medium text-gray-700 mb-1">Daily Meals</label>
+ <div class="space-y-2">
+ <label class="custom-checkbox flex items-center">
+ <input type="checkbox" name="meals" value="breakfast" checked>
+ <span class="checkbox-mark"></span>
+ <span>Breakfast</span>
+ </label>
+ <label class="custom-checkbox flex items-center">
+ <input type="checkbox" name="meals" value="lunch" checked>
+ <span class="checkbox-mark"></span>
+ <span>Lunch</span>
+ </label>
+ <label class="custom-checkbox flex items-center">
+ <input type="checkbox" name="meals" value="dinner" checked>
+ <span class="checkbox-mark"></span>
+ <span>Dinner</span>
+ </label>
+ <label class="custom-checkbox flex items-center">
+ <input type="checkbox" name="meals" value="snacks">
+ <span class="checkbox-mark"></span>
+ <span>Snacks</span>
+ </label>
+ </div>
+ </div>
+ <div class="flex justify-end space-x-3">
+ <button type="button" id="cancelPlanBtn" class="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-button font-medium hover:bg-gray-50 transition-all whitespace-nowrap">
+ Cancel
+ </button>
+ <button type="submit" class="bg-primary text-white py-2 px-4 rounded-button font-medium hover:bg-opacity-90 transition-all whitespace-nowrap">
+ Generate Plan
+ </button>
+ </div>
+ </form>
+ `;
+ emptyPlanState.classList.add('hidden');
+ dietPlanContent.innerHTML = '';
+ dietPlanContent.appendChild(customizationForm);
+ dietPlanContent.classList.remove('hidden');
+ // Add event listeners for the new form
+ const dietPlanForm = document.getElementById('dietPlanForm');
+ const cancelPlanBtn = document.getElementById('cancelPlanBtn');
+ dietPlanForm.addEventListener('submit', (e) => {
+ e.preventDefault();
+ // Here you would typically make an API call to generate the plan
+ // For now, we'll just show a success message
+ const successMessage = document.createElement('div');
+ successMessage.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded shadow-lg';
+ successMessage.textContent = 'Your diet plan is being generated...';
+ document.body.appendChild(successMessage);
+ setTimeout(() => {
+ successMessage.remove();
+ // Show the original diet plan content
+ dietPlanContent.innerHTML = document.querySelector('template').content.cloneNode(true);
+ // Initialize charts after content is added
+ initializeCharts();
+ }, 2000);
+ });
+ cancelPlanBtn.addEventListener('click', () => {
+ dietPlanContent.classList.add('hidden');
+ emptyPlanState.classList.remove('hidden');
+ });
+ }
+ createPlanBtn.addEventListener('click', showDietPlanForm);
+ getStartedBtn.addEventListener('click', showDietPlanForm);
+ // Login/Signup Modal Functionality
+ const loginBtn = document.getElementById('loginBtn');
+ const loginModal = document.getElementById('loginModal');
+ const signupModal = document.getElementById('signupModal');
+ const closeLoginModal = document.getElementById('closeLoginModal');
+ const closeSignupModal = document.getElementById('closeSignupModal');
+ const switchToSignup = document.getElementById('switchToSignup');
+ const switchToLogin = document.getElementById('switchToLogin');
+ const loginForm = document.getElementById('loginForm');
+ const signupForm = document.getElementById('signupForm');
+ loginBtn.addEventListener('click', () => {
+ loginModal.classList.remove('hidden');
+ });
+ closeLoginModal.addEventListener('click', () => {
+ loginModal.classList.add('hidden');
+ });
+ closeSignupModal.addEventListener('click', () => {
+ signupModal.classList.add('hidden');
+ });
+ switchToSignup.addEventListener('click', () => {
+ loginModal.classList.add('hidden');
+ signupModal.classList.remove('hidden');
+ });
+ switchToLogin.addEventListener('click', () => {
+ signupModal.classList.add('hidden');
+ loginModal.classList.remove('hidden');
+ });
+ loginForm.addEventListener('submit', (e) => {
+ e.preventDefault();
+ const identifier = document.getElementById('loginIdentifier').value;
+ const password = document.getElementById('loginPassword').value;
+ // Here you would typically make an API call to verify credentials
+ console.log('Login attempt:', { identifier, password });
+ // Show success message
+ const successMessage = document.createElement('div');
+ successMessage.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded shadow-lg';
+ successMessage.textContent = 'Login successful!';
+ document.body.appendChild(successMessage);
+ // Remove message after 3 seconds
+ setTimeout(() => {
+ successMessage.remove();
+ loginModal.classList.add('hidden');
+ // Update login button to show user is logged in
+ loginBtn.innerHTML = '<i class="ri-user-line ri-lg mr-2"></i>My Account';
+ }, 3000);
+ });
+ signupForm.addEventListener('submit', (e) => {
+ e.preventDefault();
+ const name = document.getElementById('signupName').value;
+ const email = document.getElementById('signupEmail').value;
+ const phone = document.getElementById('signupPhone').value;
+ const password = document.getElementById('signupPassword').value;
+ const confirmPassword = document.getElementById('signupConfirmPassword').value;
+ if (password !== confirmPassword) {
+ const errorMessage = document.createElement('div');
+ errorMessage.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded shadow-lg';
+ errorMessage.textContent = 'Passwords do not match!';
+ document.body.appendChild(errorMessage);
+ setTimeout(() => errorMessage.remove(), 3000);
+ return;
+ }
+ // Here you would typically make an API call to create account
+ console.log('Signup attempt:', { name, email, phone, password });
+ // Show success message
+ const successMessage = document.createElement('div');
+ successMessage.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded shadow-lg';
+ successMessage.textContent = 'Account created successfully!';
+ document.body.appendChild(successMessage);
+ // Remove message after 3 seconds
+ setTimeout(() => {
+ successMessage.remove();
+ signupModal.classList.add('hidden');
+ loginModal.classList.remove('hidden');
+ }, 3000);
+ });
+ // Close modals when clicking outside
+ window.addEventListener('click', (e) => {
+ if (e.target === loginModal) {
+ loginModal.classList.add('hidden');
+ }
+ if (e.target === signupModal) {
+ signupModal.classList.add('hidden');
+ }
+ });
+ // BMI Calculator
+ const bmiForm = document.getElementById('bmi-form');
+ const bmiResult = document.getElementById('bmi-result');
+ bmiForm.addEventListener('submit', function(e) {
+ e.preventDefault();
+ const height = parseFloat(document.getElementById('height').value);
+ const weight = parseFloat(document.getElementById('weight').value);
+ const heightUnit = document.getElementById('height-unit').value;
+ const weightUnit = document.getElementById('weight-unit').value;
+ // Convert measurements to metric if needed
+ let heightInMeters = height;
+ let weightInKg = weight;
+ if (heightUnit === 'feet') {
+ heightInMeters = height * 0.3048;
+ } else {
+ heightInMeters = height / 100;
+ }
+ if (weightUnit === 'lbs') {
+ weightInKg = weight * 0.453592;
+ }
+ // Calculate BMI
+ const bmi = weightInKg / (heightInMeters * heightInMeters);
+ // Update result display
+ bmiResult.innerHTML = `
+ <div class="text-center">
+ <h3 class="text-xl font-semibold mb-2">Your BMI Result</h3>
+ <div class="flex items-center justify-center w-32 h-32 rounded-full bg-white shadow-md mb-4">
+ <span id="bmi-value" class="text-3xl font-bold">${bmi.toFixed(1)}</span>
+ </div>
+ <div id="bmi-category" class="text-lg font-medium ${getBMIColorClass(bmi)} mb-2">${getBMICategory(bmi)}</div>
+ <p class="text-gray-600 mb-6">${getBMIMessage(bmi)}</p>
+ <div class="relative w-full h-12 bg-gradient-to-r from-blue-500 via-green-500 to-red-500 rounded-lg mb-12">
+ <div class="absolute -top-6 left-[15%] text-xs">18.5</div>
+ <div class="absolute -top-6 left-[35%] text-xs">24.9</div>
+ <div class="absolute -top-6 left-[60%] text-xs">29.9</div>
+ <div class="absolute -bottom-6 left-[10%] text-xs text-blue-600">Underweight</div>
+ <div class="absolute -bottom-6 left-[35%] text-xs text-green-600">Normal</div>
+ <div class="absolute -bottom-6 left-[60%] text-xs text-yellow-600">Overweight</div>
+ <div class="absolute -bottom-6 left-[85%] text-xs text-red-600">Obese</div>
+ <div class="absolute top-0 transform -translate-x-1/2 w-4 h-4 bg-white border-2 border-primary rounded-full" style="left: ${getBMIPosition(bmi)}%"></div>
+ </div>
+ <div class="bg-white rounded-lg shadow-sm p-4 mb-4 w-full">
+ <h4 class="font-medium mb-2">Recommended Goal</h4>
+ <p id="bmi-recommendation" class="text-gray-700">${getBMIRecommendation(bmi)}</p>
+ </div>
+ <div class="flex space-x-3">
+ <a href="https://readdy.ai/home/d644ede1-05d3-40b0-88f6-b030144e4d4c/4b0a25c8-34aa-4aa6-a1e4-d1a8e30717fa" data-readdy="true" class="inline-block bg-primary text-white py-2 px-4 rounded-button font-medium hover:bg-opacity-90 transition-all whitespace-nowrap">View Detailed Report</a>
+ <button class="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-button font-medium hover:bg-gray-50 transition-all whitespace-nowrap">Save Results</button>
+ </div>
+ </div>
+ `;
+ bmiResult.classList.remove('hidden');
+ bmiResult.classList.add('flex');
+ window.scrollTo({
+ top: bmiResult.offsetTop - 100,
+ behavior: 'smooth'
+ });
+ });
+ function getBMICategory(bmi) {
+ if (bmi < 18.5) return 'Underweight';
+ if (bmi < 25) return 'Normal Weight';
+ if (bmi < 30) return 'Overweight';
+ return 'Obese';
+ }
+ function getBMIColorClass(bmi) {
+ if (bmi < 18.5) return 'text-blue-600';
+ if (bmi < 25) return 'text-green-600';
+ if (bmi < 30) return 'text-yellow-600';
+ return 'text-red-600';
+ }
+ function getBMIMessage(bmi) {
+ if (bmi < 18.5) return 'Your BMI indicates you may be underweight. Consider consulting with a healthcare provider.';
+ if (bmi < 25) return 'Your BMI indicates you have a healthy weight for your height.';
+ if (bmi < 30) return 'Your BMI indicates you may be overweight. Consider making lifestyle changes.';
+ return 'Your BMI indicates obesity. It\'s recommended to consult with a healthcare provider.';
+ }
+ function getBMIPosition(bmi) {
+ if (bmi < 18.5) return 15;
+ if (bmi < 25) return 35;
+ if (bmi < 30) return 60;
+ return 85;
+ }
+ function getBMIRecommendation(bmi) {
+ if (bmi < 18.5) return 'Gain Weight - Focus on nutrient-rich foods and strength training to build healthy weight.';
+ if (bmi < 25) return 'Maintain Weight - Continue your balanced diet and regular exercise routine.';
+ if (bmi < 30) return 'Lose Weight - Aim for gradual weight loss through diet and exercise.';
+ return 'Lose Weight - Work with healthcare providers to develop a comprehensive weight management plan.';
+ }
+ });
+ document.addEventListener('DOMContentLoaded', function() {
+ // Charts
+ // Weight Progress Chart
+ const weightChart = echarts.init(document.getElementById('weight-chart'));
+ const weightOption = {
+ animation: false,
+ tooltip: {
+ trigger: 'axis',
+ backgroundColor: 'rgba(255, 255, 255, 0.8)',
+ textStyle: {
+ color: '#1f2937'
+ }
+ },
+ xAxis: {
+ type: 'category',
+ data: ['Apr 5', 'Apr 12', 'Apr 19', 'Apr 26', 'May 3'],
+ axisLine: {
+ lineStyle: {
+ color: '#d1d5db'
+ }
+ },
+ axisLabel: {
+ color: '#1f2937'
+ }
+ },
+ yAxis: {
+ type: 'value',
+ min: 65,
+ max: 75,
+ axisLine: {
+ lineStyle: {
+ color: '#d1d5db'
+ }
+ },
+ axisLabel: {
+ color: '#1f2937'
+ },
+ splitLine: {
+ lineStyle: {
+ color: '#e5e7eb'
+ }
+ }
+ },
+ series: [{
+ data: [72.5, 71.8, 70.6, 69.4, 68.7],
+ type: 'line',
+ smooth: true,
+ symbol: 'none',
+ lineStyle: {
+ color: 'rgba(87, 181, 231, 1)'
+ },
+ areaStyle: {
+ color: {
+ type: 'linear',
+ x: 0,
+ y: 0,
+ x2: 0,
+ y2: 1,
+ colorStops: [{
+ offset: 0,
+ color: 'rgba(87, 181, 231, 0.2)'
+ }, {
+ offset: 1,
+ color: 'rgba(87, 181, 231, 0.05)'
+ }]
+ }
+ }
+ }],
+ grid: {
+ left: 0,
+ right: 0,
+ top: 10,
+ bottom: 0,
+ containLabel: true
+ }
+ };
+ weightChart.setOption(weightOption);
+ // Measurements Chart
+ const measurementsChart = echarts.init(document.getElementById('measurements-chart'));
+ const measurementsOption = {
+ animation: false,
+ tooltip: {
+ trigger: 'axis',
+ backgroundColor: 'rgba(255, 255, 255, 0.8)',
+ textStyle: {
+ color: '#1f2937'
+ }
+ },
+ legend: {
+ data: ['Waist', 'Hips', 'Chest'],
+ textStyle: {
+ color: '#1f2937'
+ }
+ },
+ xAxis: {
+ type: 'category',
+ data: ['Apr 5', 'Apr 12', 'Apr 19', 'Apr 26', 'May 3'],
+ axisLine: {
+ lineStyle: {
+ color: '#d1d5db'
+ }
+ },
+ axisLabel: {
+ color: '#1f2937'
+ }
+ },
+ yAxis: {
+ type: 'value',
+ axisLine: {
+ lineStyle: {
+ color: '#d1d5db'
+ }
+ },
+ axisLabel: {
+ color: '#1f2937'
+ },
+ splitLine: {
+ lineStyle: {
+ color: '#e5e7eb'
+ }
+ }
+ },
+ series: [{
+ name: 'Waist',
+ data: [86, 85, 84, 83, 82],
+ type: 'line',
+ smooth: true,
+ symbol: 'none',
+ lineStyle: {
+ color: 'rgba(87, 181, 231, 1)'
+ }
+ }, {
+ name: 'Hips',
+ data: [102, 101, 100, 99, 98],
+ type: 'line',
+ smooth: true,
+ symbol: 'none',
+ lineStyle: {
+ color: 'rgba(141, 211, 199, 1)'
+ }
+ }, {
+ name: 'Chest',
+ data: [94, 93, 93, 92, 91],
+ type: 'line',
+ smooth: true,
+ symbol: 'none',
+ lineStyle: {
+ color: 'rgba(251, 191, 114, 1)'
+ }
+ }],
+ grid: {
+ left: 0,
+ right: 0,
+ top: 30,
+ bottom: 0,
+ containLabel: true
+ }
+ };
+ measurementsChart.setOption(measurementsOption);
+ // Calorie Chart
+ const calorieChart = echarts.init(document.getElementById('calorie-chart'));
+ const calorieOption = {
+ animation: false,
+ tooltip: {
+ trigger: 'axis',
+ backgroundColor: 'rgba(255, 255, 255, 0.8)',
+ textStyle: {
+ color: '#1f2937'
+ }
+ },
+ xAxis: {
+ type: 'category',
+ data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+ axisLine: {
+ lineStyle: {
+ color: '#d1d5db'
+ }
+ },
+ axisLabel: {
+ color: '#1f2937'
+ }
+ },
+ yAxis: {
+ type: 'value',
+ axisLine: {
+ lineStyle: {
+ color: '#d1d5db'
+ }
+ },
+ axisLabel: {
+ color: '#1f2937'
+ },
+ splitLine: {
+ lineStyle: {
+ color: '#e5e7eb'
+ }
+ }
+ },
+ series: [{
+ data: [1850, 1920, 1780, 1870, 1950, 2100, 1990],
+ type: 'bar',
+ barWidth: '60%',
+ itemStyle: {
+ color: 'rgba(87, 181, 231, 1)',
+ borderRadius: [4, 4, 0, 0]
+ }
+ }],
+ grid: {
+ left: 0,
+ right: 0,
+ top: 10,
+ bottom: 0,
+ containLabel: true
+ }
+ };
+ calorieChart.setOption(calorieOption);
+ // Macro Chart
+ const macroChart = echarts.init(document.getElementById('macro-chart'));
+ const macroOption = {
+ animation: false,
+ tooltip: {
+ trigger: 'item',
+ backgroundColor: 'rgba(255, 255, 255, 0.8)',
+ textStyle: {
+ color: '#1f2937'
+ }
+ },
+ legend: {
+ orient: 'vertical',
+ right: 10,
+ top: 'center',
+ textStyle: {
+ color: '#1f2937'
+ }
+ },
+ series: [{
+ name: 'Macronutrients',
+ type: 'pie',
+ radius: ['40%', '70%'],
+ avoidLabelOverlap: false,
+ itemStyle: {
+ borderRadius: 8,
+ borderColor: '#fff',
+ borderWidth: 2
+ },
+ label: {
+ show: false
+ },
+ emphasis: {
+ label: {
+ show: false
+ }
+ },
+ labelLine: {
+ show: false
+ },
+ data: [{
+ value: 35,
+ name: 'Protein (35%)',
+ itemStyle: {
+ color: 'rgba(87, 181, 231, 1)'
+ }
+ }, {
+ value: 40,
+ name: 'Carbs (40%)',
+ itemStyle: {
+ color: 'rgba(141, 211, 199, 1)'
+ }
+ }, {
+ value: 25,
+ name: 'Fat (25%)',
+ itemStyle: {
+ color: 'rgba(251, 191, 114, 1)'
+ }
+ }]
+ }],
+ grid: {
+ left: 0,
+ right: 0,
+ top: 0,
+ bottom: 0
+ }
+ };
+ macroChart.setOption(macroOption);
+ // Goal Charts
+ const loseWeightChart = echarts.init(document.getElementById('lose-weight-chart'));
+ const loseWeightOption = {
+ animation: false,
+ tooltip: {
+ trigger: 'item',
+ backgroundColor: 'rgba(255, 255, 255, 0.8)',
+ textStyle: {
+ color: '#1f2937'
+ }
+ },
+ series: [{
+ name: 'Macronutrients',
+ type: 'pie',
+ radius: ['40%', '70%'],
+ avoidLabelOverlap: false,
+ label: {
+ show: true,
+ position: 'inside',
+ formatter: '{d}%',
+ fontSize: 12,
+ fontWeight: 'bold',
+ color: '#fff'
+ },
+ labelLine: {
+ show: false
+ },
+ data: [{
+ value: 40,
+ name: 'Protein',
+ itemStyle: {
+ color: 'rgba(87, 181, 231, 1)'
+ }
+ }, {
+ value: 30,
+ name: 'Carbs',
+ itemStyle: {
+ color: 'rgba(141, 211, 199, 1)'
+ }
+ }, {
+ value: 30,
+ name: 'Fat',
+ itemStyle: {
+ color: 'rgba(251, 191, 114, 1)'
+ }
+ }]
+ }],
+ grid: {
+ left: 0,
+ right: 0,
+ top: 0,
+ bottom: 0
+ }
+ };
+ loseWeightChart.setOption(loseWeightOption);
+ const maintainWeightChart = echarts.init(document.getElementById('maintain-weight-chart'));
+ const maintainWeightOption = {
+ animation: false,
+ tooltip: {
+ trigger: 'item',
+ backgroundColor: 'rgba(255, 255, 255, 0.8)',
+ textStyle: {
+ color: '#1f2937'
+ }
+ },
+ series: [{
+ name: 'Macronutrients',
+ type: 'pie',
+ radius: ['40%', '70%'],
+ avoidLabelOverlap: false,
+ label: {
+ show: true,
+ position: 'inside',
+ formatter: '{d}%',
+ fontSize: 12,
+ fontWeight: 'bold',
+ color: '#fff'
+ },
+ labelLine: {
+ show: false
+ },
+ data: [{
+ value: 30,
+ name: 'Protein',
+ itemStyle: {
+ color: 'rgba(87, 181, 231, 1)'
+ }
+ }, {
+ value: 45,
+ name: 'Carbs',
+ itemStyle: {
+ color: 'rgba(141, 211, 199, 1)'
+ }
+ }, {
+ value: 25,
+ name: 'Fat',
+ itemStyle: {
+ color: 'rgba(251, 191, 114, 1)'
+ }
+ }]
+ }],
+ grid: {
+ left: 0,
+ right: 0,
+ top: 0,
+ bottom: 0
+ }
+ };
+ maintainWeightChart.setOption(maintainWeightOption);
+ const gainWeightChart = echarts.init(document.getElementById('gain-weight-chart'));
+ const gainWeightOption = {
+ animation: false,
+ tooltip: {
+ trigger: 'item',
+ backgroundColor: 'rgba(255, 255, 255, 0.8)',
+ textStyle: {
+ color: '#1f2937'
+ }
+ },
+ series: [{
+ name: 'Macronutrients',
+ type: 'pie',
+ radius: ['40%', '70%'],
+ avoidLabelOverlap: false,
+ label: {
+ show: true,
+ position: 'inside',
+ formatter: '{d}%',
+ fontSize: 12,
+ fontWeight: 'bold',
+ color: '#fff'
+ },
+ labelLine: {
+ show: false
+ },
+ data: [{
+ value: 35,
+ name: 'Protein',
+ itemStyle: {
+ color: 'rgba(87, 181, 231, 1)'
+ }
+ }, {
+ value: 50,
+ name: 'Carbs',
+ itemStyle: {
+ color: 'rgba(141, 211, 199, 1)'
+ }
+ }, {
+ value: 15,
+ name: 'Fat',
+ itemStyle: {
+ color: 'rgba(251, 191, 114, 1)'
+ }
+ }]
+ }],
+ grid: {
+ left: 0,
+ right: 0,
+ top: 0,
+ bottom: 0
+ }
+ };
+ gainWeightChart.setOption(gainWeightOption);
+ // Responsive charts
+ window.addEventListener('resize', function() {
+ weightChart.resize();
+ measurementsChart.resize();
+ calorieChart.resize();
+ macroChart.resize();
+ loseWeightChart.resize();
+ maintainWeightChart.resize();
+ gainWeightChart.resize();
+ });
+ });
+ </script>
+ </body>
+ </html>
